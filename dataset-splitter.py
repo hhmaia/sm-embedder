@@ -5,10 +5,10 @@ import random
 import shutil
 
 
-def split_subdir(input_dir, splits):
+def _split_subdir(input_dir, splits):
     '''
     Here some hashing and the module of the hash could have been used to do 
-    the spliting, but as the number of files is small, we are going to do it
+    the splitting, but as the number of files is small, we are going to do it
     the simple way.
 
     returns: a dictionary with the filenames for each subset
@@ -42,8 +42,8 @@ def _split_dataset(dataset_dir, out_dir, splits, verbose=False):
     Supose you have the directory dataset_dir with N subdirectories, one for
     each class, each of them with X examples.
     Creates a new directory out_dir with train, val and test subdirectories, 
-    each one with the same N subdirectories, but with a fraction of the X
-    examples. 
+    each one with the same N subdirectories, but with a randomly choosen 
+    fraction of the X examples. 
 
     Arguments:
         dataset_dir: path of the original dataset directory.
@@ -52,29 +52,45 @@ def _split_dataset(dataset_dir, out_dir, splits, verbose=False):
         for, respectively, train, validation and test subsets.
     '''
 
+    subsets = ['train', 'val', 'test']
+
+
     def validate_args():
+        # is there a dataset directory?
         assert(os.path.isdir(dataset_dir))
-        # each split needs to be in [0,1]
+        # splits are valid?
         for split in splits:
             assert(0. <= split <= 1.)
-        # sum of the splits needs to be less or equal 1
-        print(sum(splits))
         assert(sum(splits) <= 1.)
+        # output directory exists?
+        if not os.path.isdir(out_dir):
+            os.makedirs(out_dir)
+        # more filesystem validation, now for subsets dirs.
+        for subset in subsets:
+            p = os.path.join(out_dir, subset)
+            if not os.path.isdir(p):
+                os.mkdir(p)
+        return
+
+
+    # checking if number of classes is preserved on subsets
+    def validate_outs():
+        assert(os.path.isdir(out_dir))
+        for subset in subsets:
+            subdir_names_src = os.listdir(dataset_dir)
+            subdir_names_dest = os.listdir(os.path.join(out_dir, subset))
+            assert(len(subdir_names_src) == len(subdir_names_dest))
+        return
 
 
     validate_args()
-    if not os.path.isdir(out_dir):
-        os.makedirs(out_dir)
-        for subset in ['train', 'val', 'test']:
-            p = os.path.join(out_dir, subset)
-            os.mkdir(p)
 
     # dir names for all the classes
     subdir_names = os.listdir(dataset_dir)
     # iterates over all the classes
     for subdir in subdir_names:
         source_path = os.path.join(dataset_dir, subdir)
-        subset_fnames = split_subdir(source_path, splits)
+        subset_fnames = _split_subdir(source_path, splits)
         # iterate over the subsets
         for subset, fnames in subset_fnames.items():
             for fname in fnames:
@@ -84,9 +100,12 @@ def _split_dataset(dataset_dir, out_dir, splits, verbose=False):
                     os.mkdir(dest_path)
                 dest = os.path.join(dest_path, fname)
                 shutil.copy2(source, dest)
+
                 if verbose:
                     print(source)
                     print(dest)
+
+    validate_outs()
     return
 
 
