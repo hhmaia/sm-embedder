@@ -1,5 +1,6 @@
 '''
-Generate features and saves then as a tfrecord to accelerate training
+Augment images and save them as a tfrecord.
+
 '''
 
 import os
@@ -9,14 +10,6 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 _RANDOM_SEED = 983437
-
-
-'''
-Proof of concept.
-I only need to run this accasionally.
-Don't use this script if you need performance.
-It'll eat all your memory. You are warned! 
-'''
 
 
 def iterator_from_directory(input_dir, output_dir=None):
@@ -30,21 +23,60 @@ def iterator_from_directory(input_dir, output_dir=None):
             fill_mode='reflect',
             horizontal_flip=True,
             vertical_flip=True,
-            rescale=255.,
-            dtype=tf.dtypes.float32
-            )
+            dtype=tf.dtypes.uint16)
 
     iterator = image_generator.flow_from_directory(
             input_dir,
             target_size=(300,300),
             class_mode='sparse',
-            batch_size=1024,
+            batch_size=128,
             shuffle=True,
-            seed=_RANDOM_SEED,
-            save_to_dir=output_dir,
-            )
+            seed=_RANDOM_SEED)
             
     return iterator
+
+
+def image_example(image_raw, label):
+    def _int64_feature(value):
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+    def _bytes_feature(value):
+        return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+    feature = {
+        'label': _int64_feature(int(label)),
+        'image_raw': _bytes_feature(tf.io.encode_jpeg(image_raw).numpy())
+    }
+
+    return tf.train.Example(features=tf.train.Features(feature=feature))
+
+
+def write_tfrecord(record_fname, iterator, n_batches):
+    with tf.io.TFRecordWriter(record_fname) as writer:
+        for batch_id in range(n_batches):
+            print('\n:: Processing batch #{}...'.format(batch_id))
+            batch = iterator.next()
+            i = 1
+            for image_raw, label in zip(*batch): 
+                tf_example = image_example(image_raw, label)
+                writer.write(tf_example.SerializeToString())
+                print('\r  |_ file #{}.'.format(i), end='')
+                i = i + 1
+
+
+def dataset_from_tfrecord(record_path):
+    def decode_example(example):
+        schema = {
+            'label': tf.io.FixedLenFeature([], dtype=tf.int64),
+            'image_raw': tf.io.FixedLenFeature([], dtype=tf.string)
+        }
+        example = tf.io.parse_single_example(example, schema)
+        example['image'] = tf.io.decode_jpeg(example.pop('image_raw'))
+        return example 
+    
+    dataset = tf.data.TFRecordDataset(record_path, num_parallel_reads=4)
+    dataset = dataset.map(decode_example)
+    return dataset
 
 
 if __name__ == '__main__':
@@ -54,11 +86,6 @@ if __name__ == '__main__':
     parser.add_argument('-o', type=str)
     args = parser.parse_args()
 
-    it = iterator_from_directory(args.i, args.o)
-    labels = []
-    for batch in it: 
-        for i in batch:
-            labels.append(i[1])
-            del(i)
-        del(batch)
-    print(labels)
+    it = iterator_from_directory(args.i)
+    write_tfrecord(args.o, it, 100)
+
