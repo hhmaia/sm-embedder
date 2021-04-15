@@ -12,7 +12,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 _RANDOM_SEED = 983437
 
 
-def iterator_from_directory(input_dir, output_dir=None):
+def iterator_from_directory(input_dir, batch_size=32, output_dir=None):
     image_generator = ImageDataGenerator(
             rotation_range=36,
             width_shift_range=0.2,
@@ -29,7 +29,7 @@ def iterator_from_directory(input_dir, output_dir=None):
             input_dir,
             target_size=(300,300),
             class_mode='sparse',
-            batch_size=128,
+            batch_size=batch_size,
             shuffle=True,
             seed=_RANDOM_SEED)
             
@@ -84,8 +84,10 @@ if __name__ == '__main__':
             description="Generates features from images directory")
     parser.add_argument('-i', type=str)
     parser.add_argument('-o', type=str)
+    parser.add_argument('-b', type=int)
+    parser.add_argument('-n', type=int)
     args = parser.parse_args()
 
-    it = iterator_from_directory(args.i)
-    write_tfrecord(args.o, it, 100)
+    it = iterator_from_directory(args.i, args.b)
+    write_tfrecord(args.o, it, args.n)
 
