@@ -81,11 +81,16 @@ def dataset_from_tfrecord(record_path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-            description="Generates features from images directory")
-    parser.add_argument('-i', type=str)
-    parser.add_argument('-o', type=str)
-    parser.add_argument('-b', type=int)
-    parser.add_argument('-n', type=int)
+            description="Preprocess desafio dataset, applying augmentations"
+                        " and saving it inside a tfrecord."
+    parser.add_argument('-i', type=str
+            help='Path to the root of desafio dataset.')
+    parser.add_argument('-o', type=str
+            help='Director where to save the splits.')
+    parser.add_argument('-b', type=int
+            help='Batch size for ImageDataGenerator.')
+    parser.add_argument('-n', type=int
+            help='Number of batches to process.')
     args = parser.parse_args()
 
     it = iterator_from_directory(args.i, args.b)
