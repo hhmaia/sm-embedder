@@ -1,9 +1,12 @@
+import argparse
 import tensorflow as tf
 from tensorflow.keras.applications.efficientnet import EfficientNetB0 
 
+from preprocessing import augmented_images_dataset_from_tfrecord
 
-def prepare_dataset_for_inference(dataset, field, batch_size=128):
-    dataset = dataset.map(lambda ex: ex[field])
+
+def prepare_dataset_for_inference(dataset, batch_size=128, prefetch_size=512):
+    dataset = dataset.map(lambda ex: (ex['image'], ex['label']))
     dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(512)
     return dataset
@@ -56,6 +59,26 @@ def feature_maps_dataset_from_tfrecord(record_path):
     dataset = tf.data.TFRecordDataset(record_path, num_parallel_reads=4)
     dataset = dataset.map(decode_example)
     return dataset
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()    
+    parser.add_argument('-i', '--input_path', type=str, required=True,
+            help='Raw images tfrecord path, with fields "images" and "labels"')
+    parser.add_argument('-o', '--output_path', type=str, required=True,
+            help="Path to the output tfrecord")
+    parser.add_argument('-s', '--input_shape', type=tuple, default=(300, 300, 3), 
+            help="Shape of the input images")
+    parser.add_argument('-b', '--batch_size', type=int, default=128,
+            help="Batch size for inference")
+    parser.add_argument('-p', '--prefetch_size', type=int, default=512,
+            help="Prefetch parameter for the dataset")
+    args = parser.parse_args()
+
+    model = load_model(args.input_shape)
+    ds = augmented_images_dataset_from_tfrecord(args.input_path)
+    ds = prepare_dataset_for_inference(ds , args.batch_size, args.prefetch_size)
+    write_featuremaps_to_tfrecord(args.output_path, ds, model)
 
 
 
