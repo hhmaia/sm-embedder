@@ -1,6 +1,5 @@
 '''
 Augment images and save them as a tfrecord.
-
 '''
 
 import os
@@ -12,21 +11,24 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 _RANDOM_SEED = 983437
 
-def iterator_from_directory(input_dir, batch_size=32, output_dir=None):
+def iterator_from_directory(input_dir, batch_size=32, augment=True, output_dir=None):
     '''
     Generates augmented images using Keras preprocessing module.
     '''
-    image_generator = ImageDataGenerator(
-            rotation_range=36,
-            width_shift_range=0.2,
-            height_shift_range=0.2,
-            #shear_range=36,
-            zoom_range=0.1,
-            channel_shift_range=0.1,
-            fill_mode='reflect',
-            horizontal_flip=True,
-            vertical_flip=True,
-            dtype=tf.dtypes.uint16)
+    if augment:
+        image_generator = ImageDataGenerator(
+                rotation_range=36,
+                width_shift_range=0.2,
+                height_shift_range=0.2,
+                #shear_range=36,
+                zoom_range=0.1,
+                channel_shift_range=0.1,
+                fill_mode='reflect',
+                horizontal_flip=True,
+                vertical_flip=True,
+                dtype=tf.dtypes.uint16)
+    else:
+        image_generator = ImageDataGenerator(tf.dtypes.uint16)
 
     iterator = image_generator.flow_from_directory(
             input_dir,
@@ -105,8 +107,9 @@ if __name__ == '__main__':
             help='Batch size for ImageDataGenerator.')
     parser.add_argument('-n', type=int,
             help='Number of batches to process.')
+    parser.add_argument('--augment', action='store_true', default=False)
     args = parser.parse_args()
 
-    it = iterator_from_directory(args.i, args.b)
+    it = iterator_from_directory(args.i, args.b, augment=args.augment)
     write_augmented_images_tfrecord(args.o, it, args.n)
 
