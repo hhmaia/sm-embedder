@@ -51,7 +51,7 @@ def image_example(image_raw, label):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-   feature = {
+    feature = {
             'label': _int64_feature(int(label)),
             'image_raw': _bytes_feature(tf.io.encode_jpeg(image_raw).numpy())
     }
