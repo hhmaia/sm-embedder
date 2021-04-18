@@ -38,7 +38,7 @@ def prepare_features_dataset_for_training(featuremaps_tfrecord, batch_size):
 
 
 def train_model():
-    epochs = 10 
+    epochs = 5 
     dataset = prepare_features_dataset_for_training(features_dataset, batch_size)
     model = load_head([features_dim], emb_dim, num_classes)
     center_loss, centers = get_center_loss(0.8, num_classes, emb_dim)
@@ -64,7 +64,13 @@ def train_model():
             steps_per_epoch=1000,
             callbacks=[tb_cb]) 
 
-    return model
+    return model, centers
 
-model = train_model()
+model, centers = train_model()
 
+
+with open('centers.tsv', 'w') as f:
+    for center in centers.numpy():
+        for w in center:
+            f.write(str(w) + '\t')
+        f.write('\n')
