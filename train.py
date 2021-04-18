@@ -21,8 +21,6 @@ def load_head(input_shape, output_shape, num_classes):
    
     model = tf.keras.models.Model(
             inputs=features_input, outputs=[embeddings, softmax])
-            #inputs=features_input, outputs=softmax)
-            #inputs=features_input, outputs=embeddings)
     return model
 
 
@@ -30,7 +28,6 @@ def prepare_features_dataset_for_training(featuremaps_tfrecord, batch_size):
     dataset = feature_maps_dataset_from_tfrecord(featuremaps_tfrecord)
     dataset = dataset.map(
             lambda ex: (ex['featuremap'], (ex['label'], ex['label'])))
-            #lambda ex: (ex['featuremap'], ex['label']))
     dataset = dataset.shuffle(10000)
     dataset = dataset.batch(batch_size)
     dataset = dataset.repeat()
@@ -46,9 +43,6 @@ def train_model():
 
     model.compile('adam',
                   [center_loss, softmax_loss],
-                  # softmax_loss, 
-                  #center_loss, 
-                  #['accuracy']) 
                   {'sm': 'accuracy', 'emb': 'mse'})
 
     tb_cb = tf.keras.callbacks.TensorBoard(
