@@ -37,7 +37,7 @@ def _split_subdir(input_dir, splits):
     return dirname_fnames
 
 
-def _split_dataset(dataset_dir, out_dir, splits, verbose=False):
+def split_dataset(dataset_dir, out_dir, splits, verbose=False):
     '''
     Supose you have the directory dataset_dir with N subdirectories, one for
     each class, each of them with X examples.
@@ -128,4 +128,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    _split_dataset(args.dataset_dir, args.output_dir, args.splits, args.verbose)
+    split_dataset(args.dataset_dir, args.output_dir, args.splits, args.verbose)

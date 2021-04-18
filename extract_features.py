@@ -2,7 +2,7 @@ import argparse
 import tensorflow as tf
 from tensorflow.keras.applications.efficientnet import EfficientNetB0 
 
-from preprocessing import augmented_images_dataset_from_tfrecord
+from preprocessing import images_dataset_from_tfrecord
 
 
 def prepare_dataset_for_inference(dataset, batch_size=128, prefetch_size=512):
@@ -47,7 +47,7 @@ def write_featuremaps_to_tfrecord(output_record, dataset, model):
                 print('\r  |_ #{} featuremaps processed.'.format(i), end='')
 
 
-def feature_maps_dataset_from_tfrecord(record_path):
+def featuremaps_dataset_from_tfrecord(record_path):
     def decode_example(example):
         schema = {
                 'label': tf.io.FixedLenFeature([], tf.int64),
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     model = load_model(args.input_shape)
-    ds = augmented_images_dataset_from_tfrecord(args.input_path)
+    ds = images_dataset_from_tfrecord(args.input_path)
     ds = prepare_dataset_for_inference(ds , args.batch_size, args.prefetch_size)
     write_featuremaps_to_tfrecord(args.output_path, ds, model)
 

@@ -11,7 +11,12 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 _RANDOM_SEED = 983437
 
-def iterator_from_directory(input_dir, batch_size=32, augment=True, output_dir=None):
+def iterator_from_directory(
+        input_dir,
+        batch_size=32,
+        augment=False,
+        target_size=(300,300),
+        output_dir=None):
     '''
     Generates augmented images using Keras preprocessing module.
     '''
@@ -32,7 +37,7 @@ def iterator_from_directory(input_dir, batch_size=32, augment=True, output_dir=N
 
     iterator = image_generator.flow_from_directory(
             input_dir,
-            target_size=(300,300),
+            target_size=target_size,
             class_mode='sparse',
             batch_size=batch_size,
             shuffle=True,
@@ -60,7 +65,7 @@ def image_example(image_raw, label):
     return tf.train.Example(features=tf.train.Features(feature=feature))
 
 
-def write_augmented_images_tfrecord(record_fname, iterator, n_batches):
+def write_images_tfrecord(record_fname, iterator, n_batches):
     '''
     Given an iterator that yields tuples of iterables (batches) of images and 
     labels, writes a tfrecord from it. 
@@ -79,7 +84,7 @@ def write_augmented_images_tfrecord(record_fname, iterator, n_batches):
                 print('\r  |_ #{} images processed.'.format(i), end='')
 
 
-def augmented_images_dataset_from_tfrecord(record_path):
+def images_dataset_from_tfrecord(record_path):
     # function for decoding a dataset saved in tfrecord format
     def decode_example(example):
         schema = {
@@ -103,6 +108,8 @@ if __name__ == '__main__':
             help='Path to the root of desafio dataset.')
     parser.add_argument('-o', type=str,
             help='Name of the output tfrecord')
+    parser.add_argument('-s', '--target_size', type=tuple, default=(300, 300, 3), 
+            help="Shape of the input images")
     parser.add_argument('-b', type=int,
             help='Batch size for ImageDataGenerator.')
     parser.add_argument('-n', type=int,
@@ -110,6 +117,6 @@ if __name__ == '__main__':
     parser.add_argument('--augment', action='store_true', default=False)
     args = parser.parse_args()
 
-    it = iterator_from_directory(args.i, args.b, augment=args.augment)
+    it = iterator_from_directory(args.i, args.b, args.augment, args.target_size)
     write_augmented_images_tfrecord(args.o, it, args.n)
 
