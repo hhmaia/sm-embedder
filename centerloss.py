@@ -38,4 +38,4 @@ def get_center_loss(alpha, num_classes, feature_dim):
     def center_loss(y_true, y_pred):
         return _center_loss_func(y_pred, y_true, alpha, 
                                  num_classes, centers, feature_dim)
-    return center_loss
+    return center_loss, centers
