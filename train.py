@@ -6,16 +6,17 @@ from centerloss import get_center_loss
 from mlutils import create_lr_sched
 from model import create_head_model
 
-input_shape = (300, 300, 3)
-emb_dim = 10 
-features_dim = 1280
 train_featuremaps_record = 'build/train_featuremaps.tfrecord'
 val_featuremaps_record = 'build/val_featuremaps.tfrecord'
+
+input_shape = (300, 300, 3)
+featuremaps_dim = 1280
+emb_dim = 10 
 batch_size = 128
 num_classes = 20
 epochs = 5 
 
-head_model_ckp_path = 'build/models/head'
+head_model_ckp_path = 'build/checkpoints/head'
 timestr = time.strftime("%Y%m%d-%H%M%S")
 logs_path = 'build/logs/' + timestr
 
@@ -36,17 +37,17 @@ def train_head(head_model_checkpoint=None):
     val_dataset = prepare_features_dataset_for_training(
             val_featuremaps_record, batch_size, repeat=False)
 
-    if head_model_checkpoint:
-        model = tf.keras.models.load_model(head_model_checkpoint)
-    else:
-        model = create_head_model([features_dim], emb_dim, num_classes)
+    try:
+        model = tf.keras.models.load_model(head_model_checkpoint, compile=False)
+    except:
+        model = create_head_model([featuremaps_dim], emb_dim, num_classes)
 
-    center_loss, centers = get_center_loss(0.8, num_classes, emb_dim)
+    center_loss, centers = get_center_loss(0.85, num_classes, emb_dim)
     softmax_loss = tf.keras.losses.sparse_categorical_crossentropy
 
     model.compile('adam',
                   [center_loss, softmax_loss],
-                  {'sm': 'accuracy', 'emb': 'mse'})
+                  {'sm': 'accuracy'})
 
     tb_cb = tf.keras.callbacks.TensorBoard(
             logs_path, 1, True)  
@@ -70,7 +71,7 @@ def train_head(head_model_checkpoint=None):
 
     return model, centers
 
-head_model, centers = train_head()
+head_model, centers = train_head(head_model_ckp_path)
 
 with open('build/centers.tsv', 'w') as f:
     for center in centers.numpy():
