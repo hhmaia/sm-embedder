@@ -31,7 +31,6 @@ def iterator_from_directory(
                 fill_mode='reflect',
                 horizontal_flip=True,
                 vertical_flip=True,
-                rescale=1/128,
                 dtype=tf.dtypes.uint16)
     else:
         image_generator = ImageDataGenerator(tf.dtypes.uint16)
