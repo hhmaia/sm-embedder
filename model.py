@@ -32,3 +32,4 @@ def load_inference_model(head_model_ckp, input_shape):
             outputs=out[0])
 
     return inference_model
+
