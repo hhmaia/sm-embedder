@@ -108,7 +108,7 @@ def export_projector_data(embeddings, meta_path, logs_path):
     checkpoint.save(os.path.join(logs_path, 'embeddings.ckpt'))
     config = projector.ProjectorConfig()
     embedding = config.embeddings.add()
-    embedding.tensor_name = 'embeddings/.ATTRIBUTES/VARIABLE_VALUE'
+    embedding.tensor_name = 'embeddings'
     embedding.metadata_path = meta_path 
     projector.visualize_embeddings(logs_path, config)
 

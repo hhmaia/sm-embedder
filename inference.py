@@ -4,6 +4,7 @@ import tensorflow as tf
 from preprocessing import images_dataset_from_tfrecord
 from extract_features import prepare_dataset_for_inference
 from model import load_inference_model
+from mlutils import export_projector_data
 
 
 head_ckp_path = 'build/checkpoints/head/'
@@ -15,7 +16,6 @@ model = load_inference_model(head_ckp_path, (300, 300, 3))
 
 out = model.predict(dataset)
 centers = np.loadtxt('build/centers.tsv')
-
 
 
 with open('build/embeddings_output.tsv', 'w') as f:
@@ -45,4 +45,8 @@ labels_it = dataset.map(lambda x: x['label']).as_numpy_iterator()
 real_labels = np.array(list(labels_it))
 print(infered_labels == real_labels)
 
-
+embs_for_projector = np.loadtxt('build/embeddings_output.tsv')
+export_projector_data(
+        embs_for_projector,
+        'build/metadata.tsv',
+        'build/logs/validation') 

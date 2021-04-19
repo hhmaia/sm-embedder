@@ -13,16 +13,16 @@ train_featuremaps_record = 'build/train_featuremaps.tfrecord'
 val_featuremaps_record = 'build/val_featuremaps.tfrecord'
 input_shape = (300, 300, 3)
 featuremaps_dim = 1280
-emb_dim = 16 
-batch_size = 128
+emb_dim = 32 
+batch_size = 32 
 num_classes = 20
-epochs = 5 
-centerloss_alphas = [0.85, 0.78, 0.7]
+epochs = 10 
+centerloss_alphas = [1, 0.85, 0.8, 0.78, 0.7, 0.5]
 
 # Directory logic will be explained @ README
 head_ckp = 'build/checkpoints/head'
 timestr = time.strftime("%Y%m%d-%H%M%S")
-logs_path = 'build/logs/' + timestr
+logs_path = 'build/logs/'# + timestr
 
 
 # Mapping, batching, shuffling... bla bla bla
@@ -51,7 +51,7 @@ def train_head(head_ckp=None):
 
     # Here, we get the parametrized center_loss function and softmax loss
     center_loss, centers = get_center_loss(
-            centerloss_alphas[0], num_classes, emb_dim)
+            centerloss_alphas[2], num_classes, emb_dim)
     softmax_loss = tf.keras.losses.sparse_categorical_crossentropy
 
     model.compile('adam',
@@ -63,7 +63,7 @@ def train_head(head_ckp=None):
 
     # In the end, the model converges so quickly that we don't need a scheduler 
     lr_cb = tf.keras.callbacks.LearningRateScheduler(
-        create_lr_sched(epochs/2, epochs, warmup=True), True)
+        create_lr_sched(epochs/2, epochs, lr_end=1e-6, warmup=False), True)
     
     ckp_cb = tf.keras.callbacks.ModelCheckpoint(
             head_ckp,
@@ -75,7 +75,7 @@ def train_head(head_ckp=None):
             epochs=epochs,
             steps_per_epoch=1000,
             validation_data=val_dataset,
-            callbacks=[tb_cb, ckp_cb]) 
+            callbacks=[tb_cb, ckp_cb, lr_cb]) 
 
     return model, centers
 
