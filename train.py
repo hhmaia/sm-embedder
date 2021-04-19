@@ -15,13 +15,14 @@ emb_dim = 10
 batch_size = 128
 num_classes = 20
 epochs = 5 
+centerloss_alphas = [0.85, 0.78, 0.7]
 
-head_model_ckp_path = 'build/checkpoints/head'
+head_ckp = 'build/checkpoints/head'
 timestr = time.strftime("%Y%m%d-%H%M%S")
 logs_path = 'build/logs/' + timestr
 
-def prepare_features_dataset_for_training(featuremaps_tfrecord, batch_size, repeat=True):
-    dataset = featuremaps_dataset_from_tfrecord(featuremaps_tfrecord)
+def prepare_features_dataset_for_training(record, batch_size, repeat=True):
+    dataset = featuremaps_dataset_from_tfrecord(record)
     dataset = dataset.map(
             lambda ex: (ex['featuremap'], (ex['label'], ex['label'])))
     dataset = dataset.shuffle(10000)
@@ -38,11 +39,12 @@ def train_head(head_model_checkpoint=None):
             val_featuremaps_record, batch_size, repeat=False)
 
     try:
-        model = tf.keras.models.load_model(head_model_checkpoint, compile=False)
+        model = tf.keras.models.load_model(head_ckp, compile=False)
     except:
         model = create_head_model([featuremaps_dim], emb_dim, num_classes)
 
-    center_loss, centers = get_center_loss(0.85, num_classes, emb_dim)
+    center_loss, centers = get_center_loss(
+            centerloss_alphas[0], num_classes, emb_dim)
     softmax_loss = tf.keras.losses.sparse_categorical_crossentropy
 
     model.compile('adam',
