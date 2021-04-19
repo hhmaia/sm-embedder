@@ -3,6 +3,7 @@ import os
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+from tensorboard.plugins import projector
 
 
 def create_lr_sched(start_epoch, n_epochs, lr0=1e-3, lr_end=1e-9, warmup=True):
@@ -99,4 +100,15 @@ def plot_hist(history, key, path, with_val=True, sufix=''):
         plt.legend(['training'])
 
     return plt.show()
+
+
+def export_projector_data(embeddings, meta_path, logs_path):
+    embeddings_var = tf.Variable(embeddings, name='embeddings')
+    checkpoint = tf.train.Checkpoint(embedding=embeddings_var)
+    checkpoint.save(os.path.join(logs_path, 'embeddings.ckpt'))
+    config = projector.ProjectorConfig()
+    embedding = config.embeddings.add()
+    embedding.tensor_name = 'embeddings/.ATTRIBUTES/VARIABLE_VALUE'
+    embedding.metadata_path = meta_path 
+    projector.visualize_embeddings(logs_path, config)
 
