@@ -12,13 +12,13 @@ def create_backbone_model(input_shape):
 def create_head_model(input_shape, emb_dim, num_classes):
     features_input = tf.keras.Input(input_shape)
     x = tf.keras.layers.Dropout(0.2)(features_input)
-    embeddings = tf.keras.layers.Dense(
-            emb_dim, 'relu', use_bias=False, name='emb')(x)
+    embedder = tf.keras.layers.Dense(
+            emb_dim, 'relu', use_bias=False, name='embedder')(x)
     softmax = tf.keras.layers.Dense(
-            num_classes, 'softmax', name='sm')(embeddings)
+            num_classes, 'softmax', name='softmax')(embedder)
    
     model = tf.keras.models.Model(
-            inputs=features_input, outputs=[embeddings, softmax])
+            inputs=features_input, outputs=[embedder, softmax])
     return model
 
 

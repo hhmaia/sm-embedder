@@ -38,7 +38,6 @@ def prepare_features_dataset_for_training(record, batch_size, repeat=True):
 
 
 def train_head(head_ckp=None):
-    # Ugly, but need time
     try:
         model = tf.keras.models.load_model(head_ckp, compile=False)
     except:
@@ -56,7 +55,7 @@ def train_head(head_ckp=None):
 
     model.compile('adam',
                   [center_loss, softmax_loss],
-                  {'sm': 'accuracy'})
+                  {'softmax': 'accuracy'})
 
     tb_cb = tf.keras.callbacks.TensorBoard(
             logs_path, 1, True)  
@@ -67,7 +66,7 @@ def train_head(head_ckp=None):
     
     ckp_cb = tf.keras.callbacks.ModelCheckpoint(
             head_ckp,
-            'sm_accuracy', 
+            'softmax_accuracy', 
             save_best_only=True)
 
     model.fit(train_dataset,
@@ -78,6 +77,7 @@ def train_head(head_ckp=None):
             callbacks=[tb_cb, ckp_cb, lr_cb]) 
 
     return model, centers
+
 
 head_model, centers = train_head(head_ckp)
 
