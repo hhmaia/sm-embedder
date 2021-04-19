@@ -1,32 +1,26 @@
+import time
 import tensorflow as tf
 
-from extract_features import feature_maps_dataset_from_tfrecord 
+from extract_features import featuremaps_dataset_from_tfrecord 
 from centerloss import get_center_loss
 from mlutils import create_lr_sched
+from model import create_head_model
 
 input_shape = (300, 300, 3)
 emb_dim = 10 
 features_dim = 1280
-train_featuremaps_record = 'build/train_features.tfrecord'
-val_featuremaps_record = 'build/train_features.tfrecord'
+train_featuremaps_record = 'build/train_featuremaps.tfrecord'
+val_featuremaps_record = 'build/val_featuremaps.tfrecord'
 batch_size = 128
 num_classes = 20
 epochs = 5 
 
-def load_head(input_shape, output_shape, num_classes):
-    features_input = tf.keras.Input(input_shape)
-    embeddings = tf.keras.layers.Dense(
-            emb_dim, 'relu', use_bias=False, name='emb')(features_input)
-    softmax = tf.keras.layers.Dense(
-            num_classes, 'softmax', name='sm')(embeddings)
-   
-    model = tf.keras.models.Model(
-            inputs=features_input, outputs=[embeddings, softmax])
-    return model
-
+head_model_ckp_path = 'build/models/head'
+timestr = time.strftime("%Y%m%d-%H%M%S")
+logs_path = 'build/logs/' + timestr
 
 def prepare_features_dataset_for_training(featuremaps_tfrecord, batch_size, repeat=True):
-    dataset = feature_maps_dataset_from_tfrecord(featuremaps_tfrecord)
+    dataset = featuremaps_dataset_from_tfrecord(featuremaps_tfrecord)
     dataset = dataset.map(
             lambda ex: (ex['featuremap'], (ex['label'], ex['label'])))
     dataset = dataset.shuffle(10000)
@@ -36,13 +30,17 @@ def prepare_features_dataset_for_training(featuremaps_tfrecord, batch_size, repe
     return dataset
 
 
-def train_model():
+def train_head(head_model_checkpoint=None):
     train_dataset = prepare_features_dataset_for_training(
             train_featuremaps_record, batch_size)
     val_dataset = prepare_features_dataset_for_training(
-            val_featuremaps_record, batch_size)
+            val_featuremaps_record, batch_size, repeat=False)
 
-    model = load_head([features_dim], emb_dim, num_classes)
+    if head_model_checkpoint:
+        model = tf.keras.models.load_model(head_model_checkpoint)
+    else:
+        model = create_head_model([features_dim], emb_dim, num_classes)
+
     center_loss, centers = get_center_loss(0.8, num_classes, emb_dim)
     softmax_loss = tf.keras.losses.sparse_categorical_crossentropy
 
@@ -51,23 +49,30 @@ def train_model():
                   {'sm': 'accuracy', 'emb': 'mse'})
 
     tb_cb = tf.keras.callbacks.TensorBoard(
-            'build/logs', 1, False)  
+            logs_path, 1, True)  
 
+    # In the end, the model converges so quickly that we don't need a variable
+    # learning rate
     lr_cb = tf.keras.callbacks.LearningRateScheduler(
         create_lr_sched(epochs/2, epochs, warmup=True), True)
+
+    ckp_cb = tf.keras.callbacks.ModelCheckpoint(
+            head_model_ckp_path,
+            'sm_accuracy', 
+            save_best_only=True)
 
     model.fit(train_dataset,
             batch_size=batch_size,
             epochs=epochs,
             steps_per_epoch=1000,
-            callbacks=[tb_cb]) 
+            validation_data=val_dataset,
+            callbacks=[tb_cb, ckp_cb]) 
 
     return model, centers
 
-model, centers = train_model()
+head_model, centers = train_head()
 
-
-with open('centers.tsv', 'w') as f:
+with open('build/centers.tsv', 'w') as f:
     for center in centers.numpy():
         for w in center:
             f.write(str(w) + '\t')

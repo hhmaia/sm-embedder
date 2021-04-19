@@ -1,29 +1,35 @@
 import tensorflow as tf
 from tensorflow.keras.applications.efficientnet import EfficientNetB0
 
-from extract_features import load_model as load_backbone, \
-        feature_maps_dataset_from_tfrecord
+
+def create_backbone_model(input_shape):
+    return EfficientNetB0(
+            include_top=False, 
+            weights='imagenet',
+            pooling='avg',
+            input_shape=input_shape)
 
 
-def export_model(input_shape):
-    model = tf.keras.Sequential([
-            tf.keras.layers.Dense(256, 'softmax', input_shape=input_shape)
-    ])
+def create_head_model(input_shape, output_shape, num_classes):
+    features_input = tf.keras.Input(input_shape)
+    embeddings = tf.keras.layers.Dense(
+            emb_dim, 'relu', use_bias=False, name='emb')(features_input)
+    softmax = tf.keras.layers.Dense(
+            num_classes, 'softmax', name='sm')(embeddings)
+   
+    model = tf.keras.models.Model(
+            inputs=features_input, outputs=[embeddings, softmax])
     return model
 
-dataset = feature_maps_dataset_from_tfrecord('build/features.tfrecord')
-dataset = dataset.map(lambda ex: (ex['featuremap'], ex['label']))
-dataset = dataset.batch(128)
-dataset = dataset.prefetch(512)
-dataset = dataset.repeat()
 
-model = export_model([1280])
-model.compile('adam', 'sparse_categorical_crossentropy', ['accuracy'])
-model.summary()
+def load_inference_model(head_model_ckp, input_shape):
+    backbone_model = create_backbone_model(input_shape)
+    head_model = tf.keras.models.load_model(head_model_ckp)
 
-model.fit(dataset, batch_size=128, steps_per_epoch=100, epochs=10)
+    head_model.inputs = backbone_model.outputs
 
-val_ds = feature_maps_dataset_from_tfrecord('build/valfeats.tfrecord')
-val_ds = val_ds.map(lambda ex: (ex['featuremap'], ex['label']))
-val_ds = val_ds.batch(16)
-model.evaluate(val_ds)
+    inference_model = tf.keras.models.Model(
+            inputs=backbone_model.inputs,
+            outputs=[head_model.outputs[0]])
+
+    return inference_model

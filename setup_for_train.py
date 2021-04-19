@@ -46,7 +46,7 @@ write_images_tfrecord(
 
 # Saving hashes from directory names to a file, to later recover class names 
 with open(os.path.join(build_dir, 'labels.tsv'), 'w') as f:
-    f.write('\n'.join(train_it.class_indices.keys())
+    f.write('\n'.join(train_it.class_indices.keys()))
 
 # For validation and test datasets, we dont need augmentation. Also, we need
 # to know how many files we are going to process so we don't repeat images. 

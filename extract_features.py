@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.applications.efficientnet import EfficientNetB0 
 
 from preprocessing import images_dataset_from_tfrecord
+from model import create_backbone_model as load_model
 
 
 def prepare_dataset_for_inference(dataset, batch_size=128, prefetch_size=512):
@@ -10,14 +11,6 @@ def prepare_dataset_for_inference(dataset, batch_size=128, prefetch_size=512):
     dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(512)
     return dataset
-
-
-def load_model(input_shape):
-    return EfficientNetB0(
-            include_top=False, 
-            weights='imagenet',
-            pooling='avg',
-            input_shape=input_shape)
 
 
 def featuremap_example(featuremap, label):
