@@ -57,12 +57,12 @@ def plot_augmented_images_dataset_samples(
         dataset, fig_index=0, buffer_size=10000):
 
     dataset.shuffle(buffer_size)
-    samples = dataset.take(6)
+    samples = dataset.take(8)
 
     i = 1
     fig = plt.figure(fig_index)
     for example in samples.as_numpy_iterator():
-        subp = plt.subplot(2, 3, i) 
+        subp = plt.subplot(2, 4, i) 
         subp.imshow(example['image'])
         subp.set_title(str(example['label']))
         i = i+1
