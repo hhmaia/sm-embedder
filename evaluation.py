@@ -14,10 +14,10 @@ from mlutils import export_projector_data
 # TODO: convert this to tensorflow code
 def labels_from_embeddings(embeddings, centers):
     # Get squared distances from the centers to the embeddings,
-    # This is acchieved with broadcast subtraction of the centers by the 
+    # This is achieved with broadcast subtraction of the centers by the 
     # embeddings and squaring
     squared_diffs = [np.square(centers - e) for e in embeddings]
-    # Sum over all the axis of an embedding and get the square root, for all 
+    # Sum over all the axes of an embedding and get the square root, for all 
     # embeddings to complete the calculation of the distance
     distances = np.sqrt(np.sum(squared_diffs, axis=-1))
     # Gets the index of the minimum values over the embeddings axis,
@@ -83,9 +83,9 @@ if __name__ == '__main__':
 
     # loading centers from tsv file
     centers = np.loadtxt('build/centers.tsv')
-    infered_labels = labels_from_embeddings(test_dataset_embeddings, centers)
+    inferred_labels = labels_from_embeddings(test_dataset_embeddings, centers)
 
-    summary = get_results_summary(infered_labels, real_labels)
+    summary = get_results_summary(inferred_labels, real_labels)
     print(summary)
 
     # Export the centers and the computed embeddings to a single file for visuals 
