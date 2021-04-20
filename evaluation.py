@@ -73,32 +73,33 @@ def get_results_summary(labels_pred, labels_true):
     return summary
 
 
-test_dataset_embeddings = inference() 
+if __name__ == '__main__':
+    test_dataset_embeddings = inference() 
 
-# Loading the dataset again to get the labels
-labels_dataset = images_dataset_from_tfrecord('build/test.tfrecord') 
-labels_it = labels_dataset.map(lambda x: x['label']).as_numpy_iterator()
-real_labels = np.array(list(labels_it))
+    # Loading the dataset again to get the labels
+    labels_dataset = images_dataset_from_tfrecord('build/test.tfrecord') 
+    labels_it = labels_dataset.map(lambda x: x['label']).as_numpy_iterator()
+    real_labels = np.array(list(labels_it))
 
-# loading centers from tsv file
-centers = np.loadtxt('build/centers.tsv')
-infered_labels = labels_from_embeddings(test_dataset_embeddings, centers)
+    # loading centers from tsv file
+    centers = np.loadtxt('build/centers.tsv')
+    infered_labels = labels_from_embeddings(test_dataset_embeddings, centers)
 
-summary = get_results_summary(infered_labels, real_labels)
-print(summary)
+    summary = get_results_summary(infered_labels, real_labels)
+    print(summary)
 
-# Export the centers and the computed embeddings to a single file for visuals 
-export_embeddings_for_visualization(
-        embeddings=test_dataset_embeddings,
-        filename='build/inference_embeddings.tsv',
-        centers_filename='build/centers.tsv')
+    # Export the centers and the computed embeddings to a single file for visuals 
+    export_embeddings_for_visualization(
+            embeddings=test_dataset_embeddings,
+            filename='build/inference_embeddings.tsv',
+            centers_filename='build/centers.tsv')
 
-export_metadata('build/metadata.tsv', real_labels, num_classes=20) 
+    export_metadata('build/metadata.tsv', real_labels, num_classes=20) 
 
-# Exporting embeddings data to tensorboard. I don't know why, but the labels
-# are not working... you can load them manually from "./build/metadata.tsv"
-embs_for_projector = np.loadtxt('build/inference_embeddings.tsv')
-export_projector_data(
-        embs_for_projector,
-        'build/metadata.tsv',
-        'build/logs/') 
+    # Exporting embeddings data to tensorboard. I don't know why, but the labels
+    # are not working... you can load them manually from "./build/metadata.tsv"
+    embs_for_projector = np.loadtxt('build/inference_embeddings.tsv')
+    export_projector_data(
+            embs_for_projector,
+            'build/metadata.tsv',
+            'build/logs/') 

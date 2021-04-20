@@ -5,3 +5,46 @@ Demo project for a supermarket products embedder.
 Dataset used for training:
 https://drive.google.com/drive/folders/16ERnsBosg0VrF6fUXR1lHXPOimIrzQbA?usp=sharing 
 
+Instructions:
+1. Install the requirements with:
+
+        pip install -r requirements.txt
+
+NOTE: this is not a clean requirements.txt. It can install extra stuff.
+
+2. Start with setup_for_train.ipynb. Change the dataset_dir and the build_dir
+variables to the root of the original dataset and the root of the dir where you
+want the artifacts to be generate, respectively. 
+
+3. Run all the cells on setup_for_train.ipynb.
+
+4. After running all the cells, open the train.ipynb notebook. Change the
+build_dir variable to the same dir of step 2.
+
+5. Run all the cells.
+
+
+Epilogue: There is a lot of encapsulation into .py files. Take a look at them 
+first if you fell like it. 
+
+
+Machine used:
+
+       _,met$$$$$gg.          henrique@h-debian 
+    ,g$$$$$$$$$$$$$$$P.       ----------------- 
+  ,g$$P"     """Y$$.".        OS: Debian GNU/Linux bullseye/sid x86_64 
+ ,$$P'              `$$$.     Host: Aspire E5-573 V3.72 
+',$$P       ,ggs.     `$$b:   Kernel: 5.10.0-6-amd64 
+`d$$'     ,$P"'   .    $$$    Uptime: xx hours, xx mins 
+ $$P      d$'     ,    $$P    Packages: 1787 (dpkg) 
+ $$:      $$.   -    ,d$$'    Shell: bash 5.1.4 
+ $$;      Y$b._   _,d$P'      Resolution: 1920x1080 
+ Y$$.    `.`"Y$$$$P"'         DE: GNOME 3.38.4 
+ `$$b      "-.__              WM: Mutter 
+  `Y$$                        WM Theme: Adwaita 
+   `Y$$.                      Theme: Adwaita-dark [GTK2/3] 
+     `$$b.                    Icons: Adwaita [GTK2/3] 
+       `Y$$b.                 Terminal: guake 
+          `"Y$b._             CPU: Intel i5-5200U (4) @ 2.700GHz 
+              `"""            Memory: 3773MiB / 7872MiB 
+
