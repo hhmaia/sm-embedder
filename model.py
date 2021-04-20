@@ -35,7 +35,7 @@ def create_head_model(input_shape, embedder_dim, num_classes):
 # For inference, we conect the two previous models:
 # Backbone -> Head (the embedder)
 # The only output exposed is the embedder output.
-# In fact, this should be exposed to a third model, completely elliminating 
+# In fact, this should be exposed to a third model, completely eliminating 
 # loading the weights for the softmax layer... but time, no need for that 
 # right now.
 def load_inference_model(head_model_ckp, input_shape):
