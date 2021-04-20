@@ -82,9 +82,9 @@ real_labels = np.array(list(labels_it))
 
 # loading centers from tsv file
 centers = np.loadtxt('build/centers.tsv')
-infered_labels = labels_from_embeddings(test_dataset_embeddings, centers)
+inferred_labels = labels_from_embeddings(test_dataset_embeddings, centers)
 
-summary = get_results_summary(infered_labels, real_labels)
+summary = get_results_summary(inferred_labels, real_labels)
 print(summary)
 
 # Export the centers and the computed embeddings to a single file for visuals 
